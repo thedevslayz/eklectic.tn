@@ -1,0 +1,48 @@
+name: Build iOS IPA (Free)
+on:
+  workflow_dispatch: # Pour lancer le build à la main sur GitHub
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Expo CLI
+        run: npm install -g expo-cli
+
+      - name: Prebuild iOS
+        run: npx expo prebuild --platform ios
+
+      - name: Build IPA (Ad-Hoc / Discovery)
+        run: |
+          mkdir -p build
+          xcodebuild -workspace ios/*.xcworkspace \
+                     -scheme $(ls ios/*.xcworkspace | cut -f2 -d'/' | cut -f1 -d'.') \
+                     -configuration Release \
+                     -sdk iphoneos \
+                     -derivedDataPath build \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO
+
+      - name: Finalize IPA Package
+        run: |
+          mkdir -p build/Payload
+          cp -r build/Build/Products/Release-iphoneos/*.app build/Payload/
+          cd build && zip -r eklectic.ipa Payload/
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eklectic-ios-ipa
+          path: build/eklectic.ipa
