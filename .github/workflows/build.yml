@@ -23,6 +23,14 @@ jobs:
       - name: Prebuild iOS
         run: npx expo prebuild --platform ios
 
+      - name: Link Node for Xcode
+        run: sudo ln -s $(which node) /usr/local/bin/node || true
+
+      - name: Disable Code Signing for all targets
+        run: |
+          find ios -name "project.pbxproj" -exec sed -i '' 's/CODE_SIGNING_ALLOWED = YES/CODE_SIGNING_ALLOWED = NO/g' {} +
+          find ios -name "project.pbxproj" -exec sed -i '' 's/CODE_SIGNING_REQUIRED = YES/CODE_SIGNING_REQUIRED = NO/g' {} +
+
       - name: Build IPA (Ad-Hoc / Discovery)
         run: |
           mkdir -p build
