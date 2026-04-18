@@ -26,8 +26,10 @@ jobs:
       - name: Build IPA (Ad-Hoc / Discovery)
         run: |
           mkdir -p build
-          xcodebuild -workspace ios/*.xcworkspace \
-                     -scheme $(ls ios/*.xcworkspace | cut -f2 -d'/' | cut -f1 -d'.') \
+          WORKSPACE=$(find ios -maxdepth 1 -name "*.xcworkspace" | head -n 1)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+          xcodebuild -workspace "$WORKSPACE" \
+                     -scheme "$SCHEME" \
                      -configuration Release \
                      -sdk iphoneos \
                      -derivedDataPath build \
